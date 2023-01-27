@@ -16,33 +16,6 @@
   <widget class="QWidget" name="container">
    <layout class="QGridLayout" name="gridLayout_2"/>
   </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>900</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuPlik">
-    <property name="title">
-     <string>Plik</string>
-    </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSaveAs"/>
-   </widget>
-   <widget class="QMenu" name="menuDodaj">
-    <property name="title">
-     <string>Dodaj</string>
-    </property>
-    <addaction name="actionAddCar"/>
-    <addaction name="actionAddClient"/>
-   </widget>
-   <addaction name="menuPlik"/>
-   <addaction name="menuDodaj"/>
-  </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">

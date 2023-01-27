@@ -12,7 +12,7 @@ class Client:
     last_update: int
     full: bool
 
-    def __init__(self, first_name, last_name, post_code, city, street, building_number, flat_number, phone_number, password,
+    def __init__(self, first_name=None, last_name=None, post_code=None, city=None, street=None, building_number=None, flat_number=None, phone_number=None, password=None,
                  last_update=None, full=None, id=None):
         self.id = id
         self.first_name = first_name
@@ -27,19 +27,24 @@ class Client:
         self.last_update = last_update
         self.full = full
 
+    def is_similar_all(self, *texts) -> bool:
+        result = True
+        for arg in texts:
+            if isinstance(arg, list) or isinstance(arg, set):
+                for text in arg:
+                    result &= self.is_similar(text)
+            else:
+                result &= self.is_similar(arg)
+        return result
+
     def is_similar(self, text: str) -> bool:
         return self.first_name.lower().startswith(text) or self.last_name.lower().startswith(text)
 
 
 class Storage:
 
-    def __init__(self, max_id: int = 0):
-        self.max_id = max_id
+    def __init__(self):
         self.client_set = set()
-
-    def next_id(self) -> int:
-        self.max_id += 1
-        return self.max_id
 
     def get(self, id: int):
         if id is None:
@@ -53,13 +58,11 @@ class Storage:
         return self.client_set
 
     def add(self, entry: Client):
-        self.max_id = max(entry.id, self.max_id)
         self.client_set.add(entry)
 
     def add_all(self, entry_set):
         if entry_set is None or len(entry_set) == 0:
             return
-        self.max_id = max(self.max_id, max(entry_set, key=lambda client: client.id).id)
         self.client_set.update(self.client_set, entry_set)
 
     def remove(self, entry: Client):
@@ -67,7 +70,6 @@ class Storage:
 
     def clear(self):
         self.client_set.clear()
-        self.max_id = 0
 
     def search_all(self, text: str) -> set:
         return self.search(text, self.client_set)

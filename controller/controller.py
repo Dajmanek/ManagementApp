@@ -2,39 +2,9 @@ import abc
 
 from data import *
 from PyQt5 import QtWidgets, uic, QtCore, QtGui
-from PyQt5.QtGui import QPixmap
 from abc import ABC, abstractmethod
 
 import re
-import os
-
-
-def set_incorrect(field: QtWidgets.QLineEdit, incorrect: bool):
-    field.setProperty("class", "incorrect" if incorrect else "")
-    field.style().unpolish(field)
-    field.style().polish(field)
-
-
-def check_if_matches(pattern, *args) -> bool:
-    result = True
-    for field in args:
-        if not isinstance(field, QtWidgets.QLineEdit):
-            continue
-        matches = bool(re.fullmatch(pattern, field.text()))
-        result &= matches
-        set_incorrect(field, not matches)
-    return result
-
-
-def check_if_blank(*args):
-    result = False
-    for field in args:
-        if not isinstance(field, QtWidgets.QLineEdit):
-            continue
-        blank = not field.text()
-        result |= blank
-        set_incorrect(field, blank)
-    return result
 
 
 class Controller(ABC):
@@ -51,3 +21,28 @@ class Controller(ABC):
     @abstractmethod
     def close(self):
         pass
+
+    def set_incorrect(self, field: QtWidgets.QLineEdit, incorrect: bool):
+        field.setProperty("class", "incorrect" if incorrect else "")
+        field.style().unpolish(field)
+        field.style().polish(field)
+
+    def check_if_matches(self, pattern, *args) -> bool:
+        result = True
+        for field in args:
+            if not isinstance(field, QtWidgets.QLineEdit):
+                continue
+            matches = bool(re.fullmatch(pattern, field.text()))
+            result &= matches
+            self.set_incorrect(field, not matches)
+        return result
+
+    def check_if_blank(self, *args):
+        result = False
+        for field in args:
+            if not isinstance(field, QtWidgets.QLineEdit):
+                continue
+            blank = not field.text()
+            result |= blank
+            self.set_incorrect(field, blank)
+        return result

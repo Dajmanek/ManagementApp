@@ -1,30 +1,19 @@
-import asyncio.runners
-import time
-from enum import Enum
+import sys
+import threading
+
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QMessageBox
+
 from rest.api_client import ApiClient
 from PyQt5 import QtWidgets
 
+from controller.client_edit_controller import ClientEditController
 from controller.login_controller import LoginController
 from controller.lists_controller import ListsController
 from controller.main_controller import MainController
+
 from data.model import Storage
 from data.mapper import map_to_client_list
-
-
-class WindowType(Enum):
-    MAIN = 0
-    LISTS = 1
-    CLIENT = 2
-    CLIENT_EDIT = 3
-    CAR = 4
-    CAR_EDIT = 5
-
-
-class HistoryEntry:
-
-    def __init__(self, window_type: WindowType, *args):
-        self.window_type = window_type
-        self.args = args
 
 
 class App(QtWidgets.QApplication):
@@ -34,75 +23,74 @@ class App(QtWidgets.QApplication):
         super(App, self).__init__([])
 
         # DATA
-        self.client_storage = Storage()
+        self.storage_lock = threading.Lock()
+        self.storage = Storage()
+
+        # TIMER
+        self.timer = QTimer()
+        self.timer.setInterval(5000)
+        self.timer.timeout.connect(self.update)
 
         # GUI INIT
         self.opened_window = None
         self.history = []
-        self.controllers = {
-            WindowType.MAIN.value: MainController(self),
-            WindowType.LISTS.value: ListsController(self),
-            # WindowType.CLIENT.value: ClientController(self),
-            # WindowType.CLIENT_EDIT.value: ClientEditController(self),
-            # WindowType.CAR.value: CarController(self),
-            # WindowType.CAR_EDIT.value: CarEditController(self)
-        }
 
-        self.controllers[WindowType.MAIN.value].show()
-        self.open(WindowType.LISTS)
+        self.main_controller = MainController(self)
+        self.list_controller = ListsController(self)
+        self.client_edit_controller = ClientEditController(self)
+
+        self.main_controller.show()
+        self.open_list()
 
         LoginController(self).exec_()
 
-    def clear_history(self):
-        self.history.clear()
+    def open_list(self):
+        self.main_controller.insert_content(self.list_controller)
+        self.list_controller.setup()
 
-    def get_back(self) -> HistoryEntry:
-        history_len = len(self.history)
-        if history_len == 0:
-            return HistoryEntry(WindowType.LISTS)
-        if history_len > 1:
-            del self.history[history_len - 1]
-        return self.history[len(self.history) - 1]
+    def open_client_edit(self, *args):
+        self.main_controller.insert_content(self.client_edit_controller)
+        self.client_edit_controller.setup(args)
 
-    def back(self) -> bool:
-        history_entry = self.get_back()
-        return self._open(history_entry.window_type, False, *history_entry.args)
+    def set_storage(self, storage: Storage):
+        self.storage_lock.acquire()
+        self.storage = storage
+        self.storage_lock.release()
 
-    def open(self, window_type: WindowType, *args) -> bool:
-        return self._open(window_type, True, *args)
-
-    def _open(self, window_type: WindowType, history: bool = True, *args) -> bool:
-        if window_type.value == WindowType.MAIN.value:
-            return False
-        controller = self.controllers.get(window_type.value)
-        if controller is None:
-            return False
-        if self.opened_window is not None:
-            if self.opened_window.value == window_type.value:
-                return False
-            if opened := self.controllers.get(self.opened_window.value) is None:
-                opened.close()
-        if history:
-            self.history.append(HistoryEntry(window_type, *args))
-        self.opened_window = window_type
-        self.controllers[WindowType.MAIN.value].insert_content(controller)
-        controller.setup(*args)
-        return True
+    def get_storage(self) -> Storage:
+        self.storage_lock.acquire()
+        copied_storage = Storage()
+        copied_storage.add_all(self.storage.get_all())
+        self.storage_lock.release()
+        return copied_storage
 
     def update(self):
         clients = map_to_client_list(self.api_client.getClients())
-        self.client_storage = Storage()
-        self.client_storage.add_all(clients)
-        self.controllers[WindowType.LISTS.value].search()
+        new_storage = Storage()
+        new_storage.add_all(clients)
+        self.set_storage(new_storage)
+        self.list_controller.search()
+
+    def delete_client(self, client):
+        self.api_client.deleteClient(client.id)
+        self.update()
 
     def logged(self, api_client):
         self.api_client = api_client
         self.update()
+        self.timer.start()
 
+
+def excepthook(exc_type, exc_value, exc_tb):
+    msg = QMessageBox()
+    msg.setWindowTitle("Błąd")
+    msg.setText('%s' % exc_value)
+
+    msg.exec_()
 
 if __name__ == '__main__':
+    sys.excepthook = excepthook
     App().exec_()
-
 
 USER_LOGIN = 'test'
 USER_PASSWORD = 'password'

@@ -1,4 +1,3 @@
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from util.time_util import mills_to_date_time
@@ -20,7 +19,7 @@ def _clear(parent: QtWidgets.QWidget):
         item.widget().setParent(None)
 
 
-def _open_window(app , window_type , *args):
+def _open_window(app, window_type, *args):
     app.open(window_type, *args)
 
 
@@ -31,10 +30,13 @@ def insert_content(parent: QtWidgets.QWidget, content: QtWidgets.QWidget):
 
 def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
     if client_set is None:
-        client_set = set()
+        client_list = list()
+    else:
+        client_list = list(client_set)
+
+    client_list.sort(key=lambda client: client.id)
 
     container = _build_container()
-
     for client in client_set:
         widget = QtWidgets.QWidget()
         widget.setLayout(QtWidgets.QHBoxLayout())
@@ -45,13 +47,12 @@ def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
         widget.setProperty("class", "listLine")
         widget.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.PointingHandCursor))
         container.layout().addWidget(widget)
-        # widget.mouseReleaseEvent = lambda event, _app=app, _client=client: _open_window(_app, WindowType.CLIENT,
-        # _client)
 
         # ID
         id_widget = QtWidgets.QWidget()
         id_widget.setLayout(QtWidgets.QVBoxLayout())
-        id_widget.setMinimumWidth(20)
+        id_widget.setMinimumWidth(40)
+        id_widget.setMaximumWidth(40)
 
         id_label = QtWidgets.QLabel('#%s' % client.id)
         id_label.setProperty("class", "labelList")
@@ -138,16 +139,19 @@ def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
         right_widget.setLayout(QtWidgets.QVBoxLayout())
         right_widget.layout().setSpacing(0)
         right_widget.layout().setContentsMargins(9, 15, 9, 15)
-        right_widget.setMinimumWidth(110)
+        right_widget.setMinimumWidth(180)
+        right_widget.setMaximumWidth(180)
 
         # -> FIRST LINE
-        right_first_line = QtWidgets.QLabel("Ostatnia aktualizacja:")
+        right_first_line = QtWidgets.QLabel("Ostatnia aktualizacja")
         right_first_line.setProperty("class", "labelListBold")
+        right_first_line.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         right_widget.layout().addWidget(right_first_line)
 
         # -> SECOND LINE
         right_second_line = QtWidgets.QLabel(mills_to_date_time(client.last_update))
         right_second_line.setProperty("class", "labelList")
+        right_second_line.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         right_widget.layout().addWidget(right_second_line)
 
         widget.layout().addWidget(right_widget)
@@ -159,11 +163,11 @@ def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
         buttons_widget.layout().setContentsMargins(9, 5, 9, 5)
 
         edit_button = QtWidgets.QPushButton("edycja")
-        # edit_button.clicked = lambda _app = app, _id = client.id: _app.open(_id)
+        edit_button.clicked.connect(lambda p0, _app=app, _client=client: _app.open_client_edit(client))
         buttons_widget.layout().addWidget(edit_button)
 
         delete_button = QtWidgets.QPushButton("usuń")
-        # edit_button.clicked = lambda _app = app, _id = client.id: _app.open(_id)
+        delete_button.clicked.connect(lambda p0, _app=app, _client=client: _app.delete_client(client))
         buttons_widget.layout().addWidget(delete_button)
 
         widget.layout().addWidget(buttons_widget)
@@ -178,7 +182,6 @@ def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
         full_label.setProperty("class", "full")
         full_label.setMinimumWidth(40)
         widget.layout().addWidget(full_label)
-
 
     container.layout().addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
                                                      QtWidgets.QSizePolicy.Policy.Expanding))

@@ -20,45 +20,51 @@ API_PASSWORD_HEADER = 'authenticate_password'
 API_CONTENT_TYPE = "application/json"
 
 
+def _validate_response(response):
+    if response.status_code != 200:
+        raise Exception(response.text)
+
+
 class ApiClient:
 
     def __init__(self, login: str, password: str):
         self._login = login
         self._password = password
 
-    def authenticate(self) -> bool:
+    def authenticate(self):
         response = requests.get(API_USER_AUTHENTICATE,
                                 headers={API_CONTENT_TYPE_HEADER: API_CONTENT_TYPE,
                                          API_LOGIN_HEADER: self._login,
                                          API_PASSWORD_HEADER: self._password})
-        return response.status_code == 200
+        _validate_response(response)
 
     def getClients(self) -> ClientListDTO:
         response = requests.get(url=API_CLIENT_LIST_ENDPOINT,
                                 headers={API_CONTENT_TYPE_HEADER: API_CONTENT_TYPE,
                                          API_LOGIN_HEADER: self._login,
                                          API_PASSWORD_HEADER: self._password})
+        _validate_response(response)
         clients_data = json.loads(response.text)
         client_list = [ClientDTO(**client_data) for client_data in clients_data['clients']]
         client_list_dto = ClientListDTO(client_list)
         return client_list_dto
 
-    def updateClient(self, client_dto: ClientDTO) -> bool:
+    def updateClient(self, client_dto: ClientDTO):
         body = json.dumps(client_dto.__dict__)
         response = requests.post(url=API_CLIENT_MODIFY_ENDPOINT,
                                  headers={API_CONTENT_TYPE_HEADER: API_CONTENT_TYPE,
                                           API_LOGIN_HEADER: self._login,
                                           API_PASSWORD_HEADER: self._password},
                                  data=body)
-        return response.status_code == 200
+        _validate_response(response)
 
-    def deleteClient(self, client_id: int) -> bool:
+    def deleteClient(self, client_id: int) :
         url = API_CLIENT_DELETE_ENDPOINT + str(client_id)
         response = requests.delete(url=url,
                                    headers={API_CONTENT_TYPE_HEADER: API_CONTENT_TYPE,
                                             API_LOGIN_HEADER: self._login,
                                             API_PASSWORD_HEADER: self._password})
-        return response.status_code == 200
+        _validate_response(response)
 
     def addClient(self, client_dto: ClientDTO) -> ClientDTO:
         body = json.dumps(client_dto.__dict__)
@@ -67,5 +73,6 @@ class ApiClient:
                                          API_LOGIN_HEADER: self._login,
                                          API_PASSWORD_HEADER: self._password},
                                 data=body)
+        _validate_response(response)
         client_dto = ClientDTO(**json.loads(response.text))
         return client_dto
