@@ -6,7 +6,7 @@ from PyQt5 import QtWidgets
 
 from controller.controller import Controller
 from data.model import Client
-from data.mapper import map_to_client_dto
+from data.mapper import map_to_client_dto, map_to_client
 
 
 class ClientEditController(Controller, ABC):
@@ -99,7 +99,6 @@ class ClientEditController(Controller, ABC):
 
         if new_client:
             self.client = Client()
-            self.app.storage.add(self.client)
 
         self.client.first_name = self.fields["firstName"].text()
         self.client.last_name = self.fields["lastName"].text()
@@ -114,8 +113,10 @@ class ClientEditController(Controller, ABC):
         client_dto = map_to_client_dto(self.client)
 
         if new_client:
-            self.app.api_client.addClient(client_dto)
+            client_dto = self.app.api_client.addClient(client_dto)
+            client = map_to_client(client_dto)
+            self.app.get_storage().add(client)
         else:
             self.app.api_client.updateClient(client_dto)
 
-        self.app.back()
+        self.app.open_list()

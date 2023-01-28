@@ -20,9 +20,6 @@ class MainController(Controller, ABC):
         self.content = controller.widget
         self.container_widget.layout().addWidget(self.content)
 
-    def handle_exception(self, exc_value):
-        QtWidgets.QMessageBox.warning(self.widget, 'Error', exc_value)
-
     def setup(self, *args):
         pass
 

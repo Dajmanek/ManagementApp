@@ -50,7 +50,7 @@ class App(QtWidgets.QApplication):
 
     def open_client_edit(self, *args):
         self.main_controller.insert_content(self.client_edit_controller)
-        self.client_edit_controller.setup(args)
+        self.client_edit_controller.setup(*args)
 
     def set_storage(self, storage: Storage):
         self.storage_lock.acquire()
@@ -85,7 +85,6 @@ def excepthook(exc_type, exc_value, exc_tb):
     msg = QMessageBox()
     msg.setWindowTitle("Błąd")
     msg.setText('%s' % exc_value)
-
     msg.exec_()
 
 if __name__ == '__main__':

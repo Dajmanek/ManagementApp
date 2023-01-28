@@ -1,7 +1,4 @@
-import abc
-
-from data import *
-from PyQt5 import QtWidgets, uic, QtCore, QtGui
+from PyQt5 import QtWidgets, uic
 from abc import ABC, abstractmethod
 
 import re

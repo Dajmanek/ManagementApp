@@ -28,16 +28,16 @@ def insert_content(parent: QtWidgets.QWidget, content: QtWidgets.QWidget):
     parent.layout().addWidget(content)
 
 
-def build_main_client_list(app, client_set=[]) -> QtWidgets.QWidget:
+def build_main_client_list(app, client_set=None) -> QtWidgets.QWidget:
     if client_set is None:
-        client_list = list()
-    else:
-        client_list = list(client_set)
+        client_set = list()
 
+    client_list = list(client_set)
     client_list.sort(key=lambda client: client.id)
 
     container = _build_container()
-    for client in client_set:
+
+    for client in client_list:
         widget = QtWidgets.QWidget()
         widget.setLayout(QtWidgets.QHBoxLayout())
         widget.setMinimumHeight(60)
