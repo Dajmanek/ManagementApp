@@ -23,7 +23,7 @@ QMainWindow{
 
 QPushButton{
     padding: 5px 20px 5px 20px;
-    background-color: #f6f6f6;
+    background-color: white;
     border: 1px solid #e2e2e2;
     border-radius: 2px;
 }

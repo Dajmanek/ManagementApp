@@ -2,7 +2,7 @@ import threading
 
 from controller.controller import *
 
-from util import list_builder
+from util import widget_util
 
 
 class ListsController(Controller, ABC):
@@ -35,8 +35,8 @@ class ListsController(Controller, ABC):
         if text is None:
             text = self.search_field.text()
 
-        content = list_builder.build_main_client_list(self.app, self.app.get_storage().search_all(text))
-        list_builder.insert_content(self.clients_content, content)
+        content = widget_util.build_main_client_list(self.app, self.app.get_storage().search_all(text))
+        widget_util.insert_content(self.clients_content, content)
         self.search_lock.release()
 
     def close(self):
