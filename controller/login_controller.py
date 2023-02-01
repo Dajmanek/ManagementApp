@@ -15,6 +15,7 @@ class LoginController(QtWidgets.QDialog):
 
         self.textPass = QtWidgets.QLineEdit(self)
         self.textPass.setPlaceholderText("hasło")
+        self.textPass.setEchoMode(QtWidgets.QLineEdit.Password)
 
         self.buttonLogin = QtWidgets.QPushButton('Zaloguj', self)
         self.buttonLogin.clicked.connect(self.handleLogin)
